@@ -22,9 +22,9 @@ def load_rss_feed(rss_url: str) -> list[dict]:
     for entry in feed.entries:
         dict = {
             "Id": entry.id,
+            "Title": entry.title,
             "Content": fetch_news_content(news_url=entry.link),
-            "metadata": {
-                "Title": entry.title,
+            "Metadata": {
                 "Link": entry.link,
                 "Publish_date": entry.published,
                 "Publish_date_text": transform_date_to_text(date=entry.published)

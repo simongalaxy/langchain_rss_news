@@ -1,6 +1,9 @@
 from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
+
+from pprint import pprint
 
 class ChromaDBHandler:
     def __init__(self, persist_directory: str, ollama_embedding_model: str):
@@ -14,7 +17,7 @@ class ChromaDBHandler:
 
         # Initialize Chroma vector store
         self.vectorstore = Chroma(
-            collection_name="documents",
+            collection_name="rss_news",
             embedding_function=self.embeddings,
             persist_directory=self.persist_directory,
         )
@@ -25,24 +28,46 @@ class ChromaDBHandler:
             chunk_overlap=50
         )
 
-    def add_text(self, text: str, metadata: dict, doc_id: str) -> None:
-        """
-        Split text, embed, and save with metadata.
-        """
-        chunks = self.splitter.split_text(text)
-        self.vectorstore.add_texts(
-            texts=chunks,
-            metadatas=[metadata] * len(chunks),
-            ids=[f"{doc_id}_{i}" for i in range(len(chunks))]
-        )
-        print(f"Document '{doc_id}' added with {len(chunks)} chunks.")
-
+    # generate documents.
+    def add_feeds_to_chromadb(self, feeds: list[dict]) -> None:
+        
+        # prepare documents.
+        documents = []
+        ids = []
+        
+        # existing ids.
+        existing = self.vectorstore.get(include=["metadatas"])
+        # print(existing["ids"])
+        
+        for feed in feeds:
+            # to avoid added duplicated feeds to chromadb.
+            
+            if feed["Id"] not in existing["ids"]:
+                document = Document(
+                    page_content=feed["Title"] + " " + feed["Content"],
+                    metadata=feed["Metadata"],
+                    id=feed["Id"]
+                )
+                ids.append(feed["Id"])
+                documents.append(document)
+        
+        print(f"Total no. of new feeds: {len(documents)}")
+        
+        # load the documents to the ChromaDB.
+        if documents:
+            self.vectorstore.add_documents(
+                documents=documents,
+                ids=ids,
+            )
+            print(f"Total {len(documents)} added to ChromaDB successfully.\n")
+        
         return
     
-    
-    def query(self, query_text: str, n_results: int = 3):
-        """
-        Retrieve documents relevant to the query.
-        """
-        results = self.vectorstore.similarity_search(query_text, k=n_results)
-        return results
+    # set up the retriever for query chromadb.
+    def retrieve_documents_from_chromadb(self, review_nos: int):
+        
+        retreiever = self.vectorstore.as_retriever(
+            search_kwargs={"k": review_nos}
+        )
+        
+        return retreiever

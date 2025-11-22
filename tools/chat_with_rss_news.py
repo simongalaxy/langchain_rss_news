@@ -1,12 +1,10 @@
-from langchain_ollama import ChatOllama, OllamaEmbeddings
-from langchain_chroma import Chroma
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
 
+from pprint import pprint
 
 # load chat loop for query to chromadb using ollama
-def run_chat_loop(persist_directory: str, ollama_model: str, ollama_embedding_model: str) -> None:
+def run_chat_loop(ChromaDB, ollama_model: str) -> None:
     
     # initiate ollama model.
     llm = ChatOllama(
@@ -14,33 +12,17 @@ def run_chat_loop(persist_directory: str, ollama_model: str, ollama_embedding_mo
         disable_streaming=False
     )
     
-    embeddings = OllamaEmbeddings(model=ollama_embedding_model)
-    
-    # initiate chroma vector store.
-    vectorstore = Chroma(
-        persist_directory=persist_directory,
-        embedding_function=embeddings
+    retriever = ChromaDB.retrieve_documents_from_chromadb(
+        review_nos=10
     )
-    
-    retriever = vectorstore.as_retriever(search_type="mmr", kwargs={})
     
     # Create RAG chain using LangChain v1.0 pattern
-    template = """Answer the question based only on the following context:
-{context}
+    template = """Answer the question based only on the following reviews: {reviews}
 
-Question: {question}
-"""
+    Question: {question}
+    """
     prompt = ChatPromptTemplate.from_template(template)
-    
-    def format_docs(docs):
-        return "\n\n".join(doc.page_content for doc in docs)
-    
-    rag_chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
+    chain = prompt | llm
     
     # run chat loop.
     while True:
@@ -49,8 +31,14 @@ Question: {question}
             break
         
         try:
-            full_response = rag_chain.invoke(question)
-            print(f"Full response: {full_response}\n")
+            reviews = retriever.invoke(question)
+            full_response = chain.invoke(
+                {
+                    "reviews": reviews,
+                    "question": question
+                }
+            )
+            pprint(f"Full response: {full_response.content}\n")
         except Exception as e:
             print(f"Error: {e}\n")
         

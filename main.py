@@ -38,19 +38,18 @@ def main():
     
     # write feeds to chromaDB.
     # initiate ChromaDB object.
-    # chromaDB = ChromaDBHandler(
-    #     persist_directory=PERSIST_DIRECTORY,
-    #     ollama_embedding_model=OLLAMA_EMBEDDING_MODEL
-    #     )
-    
-    # for feed in feeds:
-    #     chromaDB.add_text(text=feed["Content"], metadata=feed["metadata"], doc_id=feed["Id"])
-    
-    # run chat loop
-    run_chat_loop(
+    chromaDB = ChromaDBHandler(
         persist_directory=PERSIST_DIRECTORY,
-        ollama_model=OLLAMA_MODEL,
         ollama_embedding_model=OLLAMA_EMBEDDING_MODEL
+        )
+    
+    # load rss feeds into chromaDB.
+    chromaDB.add_feeds_to_chromadb(feeds=feeds)
+    
+    # # run chat loop
+    run_chat_loop(
+        ChromaDB=chromaDB,
+        ollama_model=OLLAMA_MODEL
     )
     
     return
