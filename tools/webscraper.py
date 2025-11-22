@@ -16,6 +16,4 @@ def fetch_news_content(news_url: str) -> str:
         return article.get_text(separator="\n", strip=True)
     else:
         return f"Main content not found from {news_url}"
-    
-    
-    #contentBody
+
