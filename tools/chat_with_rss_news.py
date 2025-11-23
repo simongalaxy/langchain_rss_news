@@ -8,8 +8,7 @@ def run_chat_loop(ChromaDB, ollama_model: str) -> None:
     
     # initiate ollama model.
     llm = ChatOllama(
-        model=ollama_model,
-        disable_streaming=False
+        model=ollama_model
     )
     
     retriever = ChromaDB.retrieve_documents_from_chromadb(
@@ -38,7 +37,8 @@ def run_chat_loop(ChromaDB, ollama_model: str) -> None:
                     "question": question
                 }
             )
-            pprint(f"Full response: {full_response.content}\n")
+            # pprint(f"Retrieved Reviews: {reviews}\n")
+            pprint(f"Full response for question - {question}: {full_response.content}\n")
         except Exception as e:
             print(f"Error: {e}\n")
         

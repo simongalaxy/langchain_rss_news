@@ -67,7 +67,13 @@ class ChromaDBHandler:
     def retrieve_documents_from_chromadb(self, review_nos: int):
         
         retreiever = self.vectorstore.as_retriever(
-            search_kwargs={"k": review_nos}
+            score_threshold=0.1,
+            search_type="mmr",
+            search_kwargs={
+                "k": review_nos,
+                "fetch_k": review_nos * 2,
+                "lambda_mult": 1.0
+            },
         )
         
         return retreiever
