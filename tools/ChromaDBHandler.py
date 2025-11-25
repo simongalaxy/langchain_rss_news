@@ -1,19 +1,23 @@
 from langchain_chroma import Chroma
-from langchain_ollama import OllamaEmbeddings
+# from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
 
 from pprint import pprint
 
 class ChromaDBHandler:
-    def __init__(self, persist_directory: str, ollama_embedding_model: str):
+    def __init__(self, persist_directory: str, embedding_model: str):
         """
         Setup ChromaDB with Ollama embeddings and persistence.
         """
         self.persist_directory = persist_directory
 
-        # Ollama embeddings
-        self.embeddings = OllamaEmbeddings(model=ollama_embedding_model)
+        # # Ollama embeddings
+        # self.embeddings = OllamaEmbeddings(model=ollama_embedding_model)
+
+        # Embeddings 
+        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
 
         # Initialize Chroma vector store
         self.vectorstore = Chroma(
@@ -67,13 +71,9 @@ class ChromaDBHandler:
     def retrieve_documents_from_chromadb(self, review_nos: int):
         
         retreiever = self.vectorstore.as_retriever(
-            score_threshold=0.1,
-            search_type="mmr",
             search_kwargs={
                 "k": review_nos,
-                "fetch_k": review_nos * 2,
-                "lambda_mult": 1.0
-            },
+            }
         )
         
         return retreiever

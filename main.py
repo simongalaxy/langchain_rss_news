@@ -22,13 +22,14 @@ def main():
     SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH")
     SQLITE_DB_FILE = os.getenv("SQLITE_DB_FILE")
     # initiate sqliteDBHandler object.
-    sqliteDB = SQLiteDBHandler(
-        db_path=SQLITE_DB_PATH,
-        db_filename=SQLITE_DB_FILE
-        )
+    # sqliteDB = SQLiteDBHandler(
+    #     db_path=SQLITE_DB_PATH,
+    #     db_filename=SQLITE_DB_FILE
+    #     )
     
     # ChromaDB configurations.
-    OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL")
+    # OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL")
+    HUGGINGFACE_EMBEDDING_MODEL = os.getenv("HUGGINGFACE_EMBEDDING_MODEL")
     PERSIST_DIRECTORY = os.getenv("CHROMADB_PATH")
     
     # rss news feed links (EN: English, ZN: Chinese)
@@ -37,9 +38,9 @@ def main():
     
     # fetch rss feed from url.
     feeds = load_rss_feed(rss_url=RSS_FEED_URL_EN)
-    for item in feeds:
-        # save rss item into sqliteDB.
-        sqliteDB.add_rss_item(item=item)
+    # for item in feeds:
+    #     # save rss item into sqliteDB.
+    #     sqliteDB.add_rss_item(item=item)
     
     # save rss feeds into text file for checking.
     write_rss_to_file(feeds=feeds)
@@ -48,7 +49,7 @@ def main():
     # initiate ChromaDB object.
     chromaDB = ChromaDBHandler(
         persist_directory=PERSIST_DIRECTORY,
-        ollama_embedding_model=OLLAMA_EMBEDDING_MODEL
+        embedding_model=HUGGINGFACE_EMBEDDING_MODEL
         )
     
     # load rss feeds into chromaDB.
