@@ -1,8 +1,7 @@
 from langchain_chroma import Chroma
-# from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import SentenceTransformerEmbeddings
 
 from pprint import pprint
 
@@ -13,12 +12,10 @@ class ChromaDBHandler:
         """
         self.persist_directory = persist_directory
 
-        # # Ollama embeddings
-        # self.embeddings = OllamaEmbeddings(model=ollama_embedding_model)
-
         # Embeddings 
-        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
-
+        # self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
+        self.embeddings = SentenceTransformerEmbeddings(model_name=embedding_model)
+        
         # Initialize Chroma vector store
         self.vectorstore = Chroma(
             collection_name="rss_news",
@@ -28,8 +25,8 @@ class ChromaDBHandler:
 
         # Text splitter for long docs
         self.splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50
+            chunk_size=512,
+            chunk_overlap=100
         )
 
     # generate documents.
@@ -41,7 +38,6 @@ class ChromaDBHandler:
         
         # existing ids.
         existing = self.vectorstore.get(include=["metadatas"])
-        # print(existing["ids"])
         
         for feed in feeds:
             # to avoid added duplicated feeds to chromadb.
